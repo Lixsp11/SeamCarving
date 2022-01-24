@@ -31,8 +31,12 @@
 *.out
 *.app
 
-# img
+# img and build file
 *.jpg
+/build/*
 
 # vscode configure file
-.vscode/**
+/.vscode
+
+# test file
+test*
