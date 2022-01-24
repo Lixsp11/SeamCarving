@@ -1,0 +1,55 @@
+{
+    "files.defaultLanguage": "c", // ctrl+N新建文件后默认的语言
+    "editor.formatOnType": true,  // 输入分号(C/C++的语句结束标识)后自动格式化当前这一行的代码
+    "editor.suggest.snippetsPreventQuickSuggestions": false, // clangd的snippets有很多的跳转点，不用这个就必须手动触发Intellisense了
+    "editor.acceptSuggestionOnEnter": "off", // 我个人的习惯，按回车时一定是真正的换行，只有tab才会接受Intellisense
+    // "editor.snippetSuggestions": "top", // （可选）snippets显示在补全列表顶端，默认是inline
+
+    "code-runner.runInTerminal": true, // 设置成false会在“输出”中输出，无法输入
+    "code-runner.executorMap": {
+        "c": "cd $dir && gcc $fileName -o ./build/$fileNameWithoutExt -Wall -O2 -m64 -lm -std=c99 && ./build/$fileNameWithoutExt",
+        "cpp": "cd $dir && g++ $fileName -o ./build/$fileNameWithoutExt `pkg-config --cflags --libs opencv4` -Wall -O2 -m64 -lm -std=c++11 && ./build/$fileNameWithoutExt"
+        // "c": "gcc $fileName -o $fileNameWithoutExt.exe -Wall -O2 -m64 -lm -static-libgcc -std=c11 -fexec-charset=GBK && $dir$fileNameWithoutExt.exe",
+        // "cpp": "g++ $fileName -o $fileNameWithoutExt.exe -Wall -O2 -m64 -static-libgcc -std=c++14 -fexec-charset=GBK && $dir$fileNameWithoutExt.exe"
+    }, // 右键run code时运行的命令；未注释的仅适用于PowerShell（Win10默认）和pwsh，文件名中有空格也可以编译运行；注释掉的适用于cmd（win7默认）、PS和bash，但文件名中有空格时无法运行
+    "code-runner.saveFileBeforeRun": true, // run code前保存
+    "code-runner.preserveFocus": true,     // 若为false，run code后光标会聚焦到终端上。如果需要频繁输入数据可设为false
+    "code-runner.clearPreviousOutput": false, // 每次run code前清空属于code runner的终端消息，默认false
+    "code-runner.ignoreSelection": true,   // 默认为false，效果是鼠标选中一块代码后可以单独执行，但C是编译型语言，不适合这样用
+    "code-runner.fileDirectoryAsCwd": false, // 将code runner终端的工作目录切换到文件目录再运行，对依赖cwd的程序产生影响；如果为false，executorMap要加cd $dir
+    "editor.fontFamily": "\"Jetbrains Mono Medium\", 微软雅黑",
+    "editor.fontSize": 16,
+    "bracketPairColorizer.depreciation-notice": false,
+    "files.autoSave": "onFocusChange",
+    "workbench.colorTheme": "One Dark Pro",
+    "terminal.integrated.fontFamily": "\"Fira Code\"",
+    "terminal.integrated.fontSize": 12,
+    "terminal.integrated.fontWeight": "450",
+    "terminal.integrated.fontWeightBold": "550",
+    "files.associations": {
+        "array": "cpp",
+        "atomic": "cpp",
+        "bit": "cpp",
+        "*.tcc": "cpp",
+        "deque": "cpp",
+        "string": "cpp",
+        "vector": "cpp",
+        "algorithm": "cpp",
+        "memory_resource": "cpp",
+        "string_view": "cpp",
+        "memory": "cpp",
+        "random": "cpp",
+        "fstream": "cpp",
+        "initializer_list": "cpp",
+        "sstream": "cpp",
+        "stdexcept": "cpp",
+        "tuple": "cpp",
+        "type_traits": "cpp",
+        "utility": "cpp",
+        "iostream": "cpp",
+        "ostream": "cpp",
+        "chrono": "cpp",
+        "complex": "cpp",
+        "limits": "cpp"
+    },
+}
