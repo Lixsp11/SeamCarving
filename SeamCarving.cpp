@@ -1,6 +1,6 @@
 #include "SeamCarving.h"
 
-void get_energy_img(cv::Mat const &img, cv::Mat &energy_img, int fun_type) {
+void _get_energy_img(cv::Mat const &img, cv::Mat &energy_img, int fun_type) {
     if (fun_type == ENERGY_FUN_SOBEL_L1 || fun_type == ENERGY_FUN_SOBEL_L2) {
         cv::Mat gray, dx, dy;
         cv::cvtColor(img, gray, cv::COLOR_BGR2GRAY);
@@ -13,25 +13,33 @@ void get_energy_img(cv::Mat const &img, cv::Mat &energy_img, int fun_type) {
     }
     else
         throw std::invalid_argument("unknown energy function type.");
-
-    // normalize to CV_8UC1
-    double max_val;
-    cv::minMaxLoc(energy_img, NULL, &max_val);
-    energy_img = energy_img / max_val * 255;
-    energy_img.convertTo(energy_img, CV_8UC1);
 }
 
-int find_vertical_seam(cv::Mat const &energy_img, std::stack<cv::Point> *seam) {
+void get_energy_img(cv::Mat const &img, cv::Mat &energy_img, int fun_type) {
+    _get_energy_img(img, energy_img, fun_type);
+
+    // normalize to [0, 254], use 255 as mask
+    double max_val;
+    cv::minMaxLoc(energy_img, NULL, &max_val);
+    energy_img = energy_img / max_val * (UCHAR_MAX - 1);
+    energy_img.convertTo(energy_img, CV_8U);
+}
+
+int find_vertical_seam(cv::Mat const &energy_img, std::stack<cv::Point> *seam = NULL) {
     int M[energy_img.rows][energy_img.cols] = {0};
 
     // track forward using dp
     for (int j = 0; j < energy_img.cols; j++)
-        M[0][j] = energy_img.at<uchar>(0, j);
+        M[0][j] = (energy_img.at<uchar>(0, j) == UCHAR_MAX ? INT_MAX : energy_img.at<uchar>(0, j));
     for (int i = 1; i < energy_img.rows; i++) {
         for (int j = 0; j < energy_img.cols; j++) {
             int min1 = j == 0 ? INT_MAX : std::min(M[i - 1][j - 1], M[i - 1][j]);
             int min2 = j == energy_img.cols - 1 ? INT_MAX : std::min(M[i - 1][j], M[i - 1][j + 1]);
-            M[i][j] = energy_img.at<uchar>(i, j) + std::min(min1, min2);
+            // The first case means this pixel is masked, the second means there isn't a path to this pixel.
+            if(energy_img.at<uchar>(i, j) == UCHAR_MAX || std::min(min1, min2) == INT_MAX) 
+                M[i][j] = INT_MAX;
+            else 
+                M[i][j] = energy_img.at<uchar>(i, j) + std::min(min1, min2);
         }
     }
 
@@ -45,7 +53,8 @@ int find_vertical_seam(cv::Mat const &energy_img, std::stack<cv::Point> *seam) {
         }
     }
     ret = minVal;
-    if(seam == NULL) return ret;
+    // The first case means not cal the seam, the second means can't find a seam.
+    if(seam == NULL || minVal == INT_MAX) return ret;
     while (!seam->empty()) seam->pop();
     seam->push(cv::Point(minLoc, energy_img.rows - 1));
     for (int i = energy_img.rows - 1; i > 0; i--) {
@@ -59,17 +68,21 @@ int find_vertical_seam(cv::Mat const &energy_img, std::stack<cv::Point> *seam) {
     return ret;
 }
 
-int find_horizontal_seam(cv::Mat const &energy_img, std::stack<cv::Point> *seam) {
+int find_horizontal_seam(cv::Mat const &energy_img, std::stack<cv::Point> *seam = NULL) {
     int M[energy_img.rows][energy_img.cols] = {0};
 
     // track forward using dp
     for (int i = 0; i < energy_img.rows; i++)
-        M[i][0] = energy_img.at<uchar>(i, 0);
+        M[i][0] = (energy_img.at<uchar>(i, 0) == UCHAR_MAX ? INT_MAX : energy_img.at<uchar>(i, 0));
     for (int j = 1; j < energy_img.cols; j++) {
         for (int i = 0; i < energy_img.rows; i++) {
             int min1 = i == 0 ? INT_MAX : std::min(M[i - 1][j - 1], M[i][j - 1]);
             int min2 = i == energy_img.rows - 1 ? INT_MAX : std::min(M[i][j - 1], M[i + 1][j - 1]);
-            M[i][j] = energy_img.at<uchar>(i, j) + std::min(min1, min2);
+            // The first case means this pixel is masked, the second means there isn't a path to this pixel.
+            if(energy_img.at<uchar>(i, j) == UCHAR_MAX || std::min(min1, min2) == INT_MAX) 
+                M[i][j] = INT_MAX;
+            else 
+                M[i][j] = energy_img.at<uchar>(i, j) + std::min(min1, min2);
         }
     }
 
@@ -83,7 +96,8 @@ int find_horizontal_seam(cv::Mat const &energy_img, std::stack<cv::Point> *seam)
         }
     }
     ret = minVal;
-    if(seam == NULL) return ret;
+    // The first case means not cal the seam, the second means can't find a seam.
+    if(seam == NULL || minVal == INT_MAX) return ret;
     while(!seam->empty()) seam->pop();
     seam->push(cv::Point(energy_img.cols - 1, minLoc));
     for (int j = energy_img.cols - 1; j > 0; j--) {
@@ -152,4 +166,38 @@ void find_optimal_seams_order(cv::Mat const &energy_img, cv::Size const &new_siz
         seams_order.push('v');
     while(r--)
         seams_order.push('h');
+}
+
+double get_average_energy(cv::Mat const &energy_img) {
+    return cv::mean(energy_img).val[0];
+}
+
+double get_average_energy(cv::Mat const &img, int fun_type) {
+    cv::Mat energy_img;
+    _get_energy_img(img, energy_img, fun_type);
+    return get_average_energy(energy_img);
+}
+
+int find_k_seams(cv::Mat const &energy_img, std::queue<std::stack<cv::Point>> &seams, int k, char direction = 'v') {
+    if(k > energy_img.cols / 2)
+        return -1;
+
+    int ret = 0;
+    cv::Mat _energy_img = energy_img.clone();
+    while(!seams.empty()) seams.pop();
+    while(k--) {
+        std::stack<cv::Point> seam;
+        if(direction == 'v')
+            ret += find_vertical_seam(_energy_img, &seam);
+        else if(direction == 'h')
+            ret += find_horizontal_seam(_energy_img, &seam);
+        else
+            throw std::invalid_argument("unknown direction type.");
+        seams.push(seam);
+        while(!seam.empty()) {
+            _energy_img.at<uchar>(seam.top()) = UCHAR_MAX;
+            seam.pop();
+        }
+    }
+    return ret;
 }

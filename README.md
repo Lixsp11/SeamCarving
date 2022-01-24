@@ -1,2 +1,18 @@
 # SeamCarving
-C++ with opencv implementation of paper Seam Carving for Content-Aware Image Resizing
+C++ with opencv implementation of paper [Seam Carving for Content-Aware Image Resizing](https://dl.acm.org/doi/abs/10.1145/1275808.1276390)
+
+## Environment
+- Linux
+- g++ 9.3.0
+- Opencv 4.5.4
+
+## Functions
+-  [x] The operator and DP
+-  [x] Energy Preservation Measure
+-  [ ] Image Energy Functions
+-  [x] Retargeting with Optimal Seams-Order
+-  [x] Image Enlarging
+-  [ ] Content Amplification
+-  [ ] Seam Carving in the gradient domain 
+-  [ ] Object Removal
+-  [ ] Multi-size Images

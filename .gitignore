@@ -34,6 +34,7 @@
 # img and build file
 *.jpg
 /build/*
+!/build/.gitkeep
 
 # vscode configure file
 /.vscode
