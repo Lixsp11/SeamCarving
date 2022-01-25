@@ -18,14 +18,14 @@ int main(int argc, char *argv[]) {
     namedWindow("Seam carving simple example");
 
     stack<Point> seam;
-    for (int i = 0; i < img.cols - atoi(argv[3]); i++) {
+    while (img.cols > atoi(argv[3])) {
         get_energy_img(img, energy_img, ENERGY_FUN_SOBEL_L1); // Calculate the energy img of original img.
         find_vertical_seam(energy_img, &seam); // Find vertical seam with lowest energy cost.
         remove_seam<Vec3b>(img, seam, 'v'); // Remove vertical seam.
         imshow("Seam carving simple example", img);
         waitKey(10); // Sleep 0.01s to show the process of seam carving.
     }
-    for (int i = 0; i < img.rows - atoi(argv[4]); i++) {
+    while (img.rows > atoi(argv[4])) {
         get_energy_img(img, energy_img, ENERGY_FUN_SOBEL_L1);
         find_horizontal_seam(energy_img, &seam);
         remove_seam<Vec3b>(img, seam, 'h'); // Remove horizontal seam.

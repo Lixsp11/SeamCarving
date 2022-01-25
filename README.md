@@ -12,7 +12,7 @@ C++ with opencv implementation of paper [Seam Carving for Content-Aware Image Re
 -  [ ] Image Energy Functions
 -  [x] Retargeting with Optimal Seams-Order
 -  [x] Image Enlarging
--  [ ] Content Amplification
+-  [x] Content Amplification
 -  [ ] Seam Carving in the gradient domain 
 -  [ ] Object Removal
 -  [ ] Multi-size Images
