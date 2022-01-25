@@ -1,6 +1,6 @@
 #include "SeamCarving.h"
 
-void _get_energy_img(cv::Mat const &img, cv::Mat &energy_img, int fun_type) {
+void _get_energy_img(cv::Mat const &img, cv::Mat &energy_img, int fun_type  = ENERGY_FUN_SOBEL_L1) {
     if (fun_type == ENERGY_FUN_SOBEL_L1 || fun_type == ENERGY_FUN_SOBEL_L2) {
         cv::Mat gray, dx, dy;
         cv::cvtColor(img, gray, cv::COLOR_BGR2GRAY);
@@ -15,13 +15,27 @@ void _get_energy_img(cv::Mat const &img, cv::Mat &energy_img, int fun_type) {
         throw std::invalid_argument("unknown energy function type.");
 }
 
-void get_energy_img(cv::Mat const &img, cv::Mat &energy_img, int fun_type) {
+void get_energy_img(cv::Mat const &img, cv::Mat &energy_img, int fun_type = ENERGY_FUN_SOBEL_L1) {
     _get_energy_img(img, energy_img, fun_type);
 
     // normalize to [0, 254], use 255 as mask
     double max_val;
     cv::minMaxLoc(energy_img, NULL, &max_val);
     energy_img = energy_img / max_val * (UCHAR_MAX - 1);
+    energy_img.convertTo(energy_img, CV_8U);
+}
+
+void get_energy_img(cv::Mat const &img, cv::Mat &energy_img, cv::Mat const &mask, int fun_type) {
+    _get_energy_img(img, energy_img, fun_type);
+
+    for (int i = 0; i < energy_img.rows; i++)
+        for (int j = 0; j < energy_img.cols; j++)
+            energy_img.at<double>(i, j) = mask.at<uchar>(i, j) > UCHAR_MAX / 2 ? energy_img.at<double>(i, j) : -UCHAR_MAX;
+
+    // normalize to [0, 254], use 255 as mask
+    double min_val, max_val;
+    cv::minMaxLoc(energy_img, &min_val, &max_val);
+    energy_img = (energy_img - min_val) / (max_val - min_val) * (UCHAR_MAX - 1);
     energy_img.convertTo(energy_img, CV_8U);
 }
 
@@ -54,15 +68,15 @@ int find_vertical_seam(cv::Mat const &energy_img, std::stack<cv::Point> *seam = 
     }
     ret = minVal;
     // The first case means not cal the seam, the second means can't find a seam.
-    if(seam == NULL || minVal == INT_MAX) return ret;
+    if(seam == NULL || minVal == INT_MAX) return 0;
     while (!seam->empty()) seam->pop();
     seam->push(cv::Point(minLoc, energy_img.rows - 1));
     for (int i = energy_img.rows - 1; i > 0; i--) {
         minVal -= energy_img.at<uchar>(i, minLoc);
         if(minLoc > 0 && minVal == M[i - 1][minLoc - 1])
-            minLoc --;
+            minLoc--;
         else if(minLoc < energy_img.cols - 1 && minVal == M[i - 1][minLoc + 1])
-            minLoc ++;
+            minLoc++;
         seam->push(cv::Point(minLoc, i - 1));
     }
     return ret;
@@ -97,15 +111,15 @@ int find_horizontal_seam(cv::Mat const &energy_img, std::stack<cv::Point> *seam 
     }
     ret = minVal;
     // The first case means not cal the seam, the second means can't find a seam.
-    if(seam == NULL || minVal == INT_MAX) return ret;
+    if(seam == NULL || minVal == INT_MAX) return 0;
     while(!seam->empty()) seam->pop();
     seam->push(cv::Point(energy_img.cols - 1, minLoc));
     for (int j = energy_img.cols - 1; j > 0; j--) {
         minVal -= energy_img.at<uchar>(minLoc, j);
         if(minLoc > 0 && minVal == M[minLoc - 1][j - 1])
-            minLoc -= 1;
+            minLoc--;
         else if(minLoc < energy_img.cols - 1 && minVal == M[minLoc + 1][j - 1])
-            minLoc += 1;
+            minLoc++;
         seam->push(cv::Point(j - 1, minLoc));
     }
     return ret;
@@ -179,9 +193,6 @@ double get_average_energy(cv::Mat const &img, int fun_type) {
 }
 
 int find_k_seams(cv::Mat const &energy_img, std::queue<std::stack<cv::Point>> &seams, int k, char direction = 'v') {
-    if(k > energy_img.cols / 2)
-        return -1;
-
     int ret = 0;
     cv::Mat _energy_img = energy_img.clone();
     while(!seams.empty()) seams.pop();
@@ -193,6 +204,9 @@ int find_k_seams(cv::Mat const &energy_img, std::queue<std::stack<cv::Point>> &s
             ret += find_horizontal_seam(_energy_img, &seam);
         else
             throw std::invalid_argument("unknown direction type.");
+        
+        if(seam.size() == 0)
+            return ret;
         seams.push(seam);
         while(!seam.empty()) {
             _energy_img.at<uchar>(seam.top()) = UCHAR_MAX;

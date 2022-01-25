@@ -19,23 +19,22 @@ int main(int argc, char *argv[]) {
     namedWindow("Image Enlarging Example");
 
     queue<stack<Point>> seams;
-    get_energy_img(img, energy_img, ENERGY_FUN_SOBEL_L1); // Calculate the energy img of original img.
-    find_k_seams(energy_img, seams, atoi(argv[3]) - img.cols, 'v'); // Find vertical seams with lowest energy cost.
-    while(!seams.empty()) {
-        add_seam<Vec3b>(img, seams.front(), 'v'); // Add vertical seam.
+    for(int k = atoi(argv[3]) - img.cols; k;) {
+        get_energy_img(img, energy_img, ENERGY_FUN_SOBEL_L1);           // Calculate the energy img of original img.
+        find_k_seams(energy_img, seams, k, 'v'); // Find vertical seams with lowest energy cost.
+        k -= seams.size();
+        add_seams<Vec3b>(img, seams, 'v'); // Add vertical seam.
         imshow("Image Enlarging Example", img);
         waitKey(10); // Sleep 0.01s to show the process of seam carving.
-        seams.pop();
     }
-    get_energy_img(img, energy_img, ENERGY_FUN_SOBEL_L1); // Calculate the energy img of original img.
-    find_k_seams(energy_img, seams, atoi(argv[4]) - img.rows, 'h');
-    while(!seams.empty()) {
-        add_seam<Vec3b>(img, seams.front(), 'h'); // Remove horizontal seam.
+    for (int k = atoi(argv[4]) - img.rows; k; ) {
+        get_energy_img(img, energy_img, ENERGY_FUN_SOBEL_L1); // Calculate the energy img of original img.
+        find_k_seams(energy_img, seams, k, 'h');
+        k -= seams.size();
+        add_seams<Vec3b>(img, seams, 'h'); // Remove horizontal seam.
         imshow("Image Enlarging Example", img);
         waitKey(10);
-        seams.pop();
     }
-
     imwrite(argv[2], img);
     waitKey(-1);
     return 0;

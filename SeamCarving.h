@@ -30,6 +30,12 @@ void _get_energy_img(cv::Mat const &img, cv::Mat &energy_img, int fun_type);
  */
 void get_energy_img(cv::Mat const &img, cv::Mat &energy_img, int fun_type);
 
+/** 
+ * @overload 
+ * @note The total width of the objects in mask should less than half of the width of img.
+*/
+void get_energy_img(cv::Mat const &img, cv::Mat &energy_img, cv::Mat const &mask, int fun_type);
+
 /**
  * @brief Find one vertical seam with lowest s* in energy img.
  * @param energy_img The energy image.
@@ -67,10 +73,11 @@ double get_average_energy(cv::Mat const &img, int fun_type);
 
 /**
  * @brief Find k seams with lowest s* in energy img
+ * @note The actual nums of find seams is less than of equal to k due to the img limitation.
  * @param energy_img The energy image.
  * @param seams The vector of seams, and each seam cotains a stack of points, where y increases strictly as pop.
  * @param k The number of seams, k must be less than half of the width of the energy_img.
- * @return The total energy of the seams. -1 if k > energy_img.cols / 2.
+ * @return The total energy of the seams.
  * @param direction The direction of seam. Use 'v' means vertical or 'h' means horizontal.
  */
 int find_k_seams(cv::Mat const &energy_img, std::queue<std::stack<cv::Point>> &seams, int k, char direction);
