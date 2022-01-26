@@ -9,7 +9,7 @@ C++ with opencv implementation of paper [Seam Carving for Content-Aware Image Re
 ## Functions
 -  [x] The operator and DP
 -  [x] Energy Preservation Measure
--  [ ] Image Energy Functions
+-  [x] Image Energy Functions
    -  [x] Sobel under L1-norm
    -  [x] Sobel under L2-norm
    -  [x] HoG under L1-norm
