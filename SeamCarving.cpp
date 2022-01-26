@@ -11,6 +11,18 @@ void _get_energy_img(cv::Mat const &img, cv::Mat &energy_img, int fun_type  = EN
         else
             cv::magnitude(dx, dy, energy_img);
     }
+    else if(fun_type == ENERGY_FUN_HOG_L1) {
+        struct cv::HOGDescriptor hog_descriptor;
+        cv::Mat grad, angleOfs;
+        std::vector<cv::Mat> channels;
+        hog_descriptor.computeGradient(img, grad, angleOfs);
+        cv::split(grad, channels);
+        energy_img.convertTo(energy_img, CV_64FC1);
+        energy_img = cv::abs(channels[0]) + cv::abs(channels[1]);
+        double max_val;
+        cv::minMaxLoc(energy_img, NULL, &max_val);
+        energy_img /= max_val;
+    }
     else
         throw std::invalid_argument("unknown energy function type.");
 }

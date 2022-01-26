@@ -5,11 +5,12 @@
 #include <queue>
 #include <opencv4/opencv2/core.hpp>
 #include <opencv4/opencv2/imgproc.hpp>
+#include <opencv4/opencv2/objdetect.hpp>
 
 const int ENERGY_FUN_SOBEL_L1 = 0x00;
 const int ENERGY_FUN_SOBEL_L2 = 0x01;
+const int ENERGY_FUN_HOG_L1 = 0x10;
 /*
-const int ENERGY_FUN_HOG = 0x10
 const int ENERGY_FUN_ENTROPY = 0x20
 const int ENERGY_FUN_SEGMENTATION = 0x30
 */
@@ -18,7 +19,7 @@ const int ENERGY_FUN_SEGMENTATION = 0x30
  * @brief Calculate energy img of the original img without normalize.
  * @param img Image to be processed.
  * @param energy_img The output energy image.
- * @param fun_type Image energy function to be used. Soebl-L1, Sobel-L2 are supported.
+ * @param fun_type Image energy function to be used. Soebl-L1, Sobel-L2 and HoG are supported.
  */
 void _get_energy_img(cv::Mat const &img, cv::Mat &energy_img, int fun_type);
 
@@ -26,7 +27,7 @@ void _get_energy_img(cv::Mat const &img, cv::Mat &energy_img, int fun_type);
  * @brief Calculate energy img of the original img with normalize.
  * @param img Image to be processed.
  * @param energy_img The output energy image.
- * @param fun_type Image energy function to be used. Soebl-L1, Sobel-L2 are supported.
+ * @param fun_type Image energy function to be used. Soebl-L1, Sobel-L2 and HoG are supported.
  */
 void get_energy_img(cv::Mat const &img, cv::Mat &energy_img, int fun_type);
 
