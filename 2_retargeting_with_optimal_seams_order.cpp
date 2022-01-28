@@ -24,6 +24,7 @@ int main(int argc, char *argv[]) {
     while(!seams_order.empty()) {
         stack<Point> seam;
         get_energy_img(img, energy_img, ENERGY_FUN_SOBEL_L1);
+        cout << seams_order.top() << (seams_order.size() == 1 ? '\n': ' ');
         if(seams_order.top() == 'v') {
             find_vertical_seam(energy_img, &seam);
             remove_seam<Vec3b>(img, seam, 'v');
@@ -36,7 +37,6 @@ int main(int argc, char *argv[]) {
         imshow("Retargeting with optimal seams-order", img);
         waitKey(10); // Sleep 0.01s to show the process of seam carving.
     }
-    cout << img.cols << " " << img.rows << endl;
     imwrite(argv[2], img);
     waitKey(-1);
     return 0;
