@@ -15,7 +15,7 @@ int main(int argc, char *argv[]) {
     }
 
     Mat img = imread(argv[1]), energy_img;
-    namedWindow("Seam carving simple example");
+    namedWindow("Average filtering");
 
     stack<Point> seam;
     while (img.cols > atoi(argv[3])) {
@@ -23,7 +23,7 @@ int main(int argc, char *argv[]) {
         find_vertical_seam(energy_img, &seam); // Find vertical seam with lowest energy cost.
         average_filtering(img, seam, 'v'); // Add average filtering to reduce serrations.
         remove_seam<Vec3b>(img, seam, 'v'); // Remove vertical seam.
-        imshow("Seam carving simple example", img);
+        imshow("Average filtering", img);
         waitKey(10); // Sleep 0.01s to show the process of seam carving.
     }
     while (img.rows > atoi(argv[4])) {
@@ -31,7 +31,7 @@ int main(int argc, char *argv[]) {
         find_horizontal_seam(energy_img, &seam);
         average_filtering(img, seam, 'h');
         remove_seam<Vec3b>(img, seam, 'h'); // Remove horizontal seam.
-        imshow("Seam carving simple example", img);
+        imshow("Average filtering", img);
         waitKey(10);
     }
 
