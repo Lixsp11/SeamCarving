@@ -1,7 +1,7 @@
 #include <iostream>
 #include <stack>
 #include <queue>
-#include "SeamCarving.h"
+#include "SeamCarving.cpp"
 #include <opencv4/opencv2/core.hpp>
 #include <opencv4/opencv2/highgui.hpp>
 #include <opencv4/opencv2/imgproc.hpp>

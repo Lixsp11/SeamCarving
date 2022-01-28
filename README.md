@@ -4,7 +4,7 @@ C++ with opencv implementation of paper [Seam Carving for Content-Aware Image Re
 ## Environment
 - Linux
 - g++ 9.3.0
-- Opencv 4.5.4
+- OpenCV 4.5.4
 
 ## Functions
 -  [x] The operator and DP

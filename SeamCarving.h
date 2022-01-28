@@ -3,6 +3,7 @@
 
 #include <stack>
 #include <queue>
+#include <vector>
 #include <opencv4/opencv2/core.hpp>
 #include <opencv4/opencv2/imgproc.hpp>
 #include <opencv4/opencv2/objdetect.hpp>
@@ -59,8 +60,9 @@ int find_horizontal_seam(cv::Mat const &energy_img, std::stack<cv::Point> *seam)
  * @param energy_img Energy img of the original image.
  * @param new_size The new size.
  * @param seams_order The optimal order, where 'v' presents vertical seam and 'h' present horizontal seam.
+ * @param step Run step times remove before the next search.
  */
-void find_optimal_seams_order(cv::Mat const &energy_img, cv::Size const &new_size, std::stack<char> &seams_order);
+void find_optimal_seams_order(cv::Mat const &energy_img, cv::Size const &new_size, std::stack<char> &seams_order, int step);
 
 /**
  * @brief Get average of img form energy img.
@@ -83,6 +85,14 @@ double get_average_energy(cv::Mat const &img, int fun_type);
  */
 int find_k_seams(cv::Mat const &energy_img, std::queue<std::stack<cv::Point>> &seams, int k, char direction);
 
+/**
+ * @brief Mean filtering is performed for pixels on the left and right (upper and lower) sides of the slit
+ * , and the range is the intersection between pixel 8 neighborhood and the slit.
+ * @param img The orgional img.
+ * @param seam The points of the seam.
+ * @param direction The direction of seam. Use 'v' means vertical or 'h' means horizontal.
+ */
+void average_filtering(cv::Mat &img, std::stack<cv::Point> const &seam, char direction);
 
 #include "SeamCarving_impl.h"
 

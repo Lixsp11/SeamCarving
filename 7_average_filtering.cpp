@@ -21,6 +21,7 @@ int main(int argc, char *argv[]) {
     while (img.cols > atoi(argv[3])) {
         get_energy_img(img, energy_img, ENERGY_FUN_SOBEL_L1); // Calculate the energy img of original img.
         find_vertical_seam(energy_img, &seam); // Find vertical seam with lowest energy cost.
+        average_filtering(img, seam, 'v'); // Add average filtering to reduce serrations.
         remove_seam<Vec3b>(img, seam, 'v'); // Remove vertical seam.
         imshow("Seam carving simple example", img);
         waitKey(10); // Sleep 0.01s to show the process of seam carving.
@@ -28,6 +29,7 @@ int main(int argc, char *argv[]) {
     while (img.rows > atoi(argv[4])) {
         get_energy_img(img, energy_img, ENERGY_FUN_SOBEL_L1);
         find_horizontal_seam(energy_img, &seam);
+        average_filtering(img, seam, 'h');
         remove_seam<Vec3b>(img, seam, 'h'); // Remove horizontal seam.
         imshow("Seam carving simple example", img);
         waitKey(10);
