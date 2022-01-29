@@ -19,7 +19,7 @@ int main(int argc, char *argv[]) {
 
     stack<char> seams_order; // Data structure stores the seams order, where unstack sequence is the optimal seam sequence.
     get_energy_img(img, energy_img, ENERGY_FUN_SOBEL_L1); // Calculate the energy img of original img.
-    find_optimal_seams_order(energy_img, Size(atoi(argv[3]), atoi(argv[4])), seams_order, 1); // Find optimal seams order using dp.
+    find_optimal_seams_order(energy_img, Size(atoi(argv[3]), atoi(argv[4])), seams_order, 3); // Find optimal seams order using dp.
     
     while(!seams_order.empty()) {
         stack<Point> seam;

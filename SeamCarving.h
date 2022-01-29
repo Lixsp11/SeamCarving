@@ -92,7 +92,7 @@ int find_k_seams(cv::Mat const &energy_img, std::queue<std::stack<cv::Point>> &s
  * @param seam The points of the seam.
  * @param direction The direction of seam. Use 'v' means vertical or 'h' means horizontal.
  */
-void average_filtering(cv::Mat &img, std::stack<cv::Point> const &seam, char direction);
+void average_filtering(cv::Mat &img, std::stack<cv::Point> seam, char direction);
 
 #include "SeamCarving_impl.h"
 

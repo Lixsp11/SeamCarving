@@ -53,7 +53,6 @@ void get_energy_img(cv::Mat const &img, cv::Mat &energy_img, cv::Mat const &mask
 
 int find_vertical_seam(cv::Mat const &energy_img, std::stack<cv::Point> *seam = NULL) {
     std::vector<std::vector<int>> M(energy_img.rows, std::vector<int>(energy_img.cols, 0));
-    // int M[energy_img.rows][energy_img.cols] = {0};
 
     // track forward using dp
     for (int j = 0; j < energy_img.cols; j++)
@@ -97,7 +96,6 @@ int find_vertical_seam(cv::Mat const &energy_img, std::stack<cv::Point> *seam = 
 
 int find_horizontal_seam(cv::Mat const &energy_img, std::stack<cv::Point> *seam = NULL) {
     std::vector<std::vector<int>> M(energy_img.rows, std::vector<int>(energy_img.cols, 0));
-    // int M[energy_img.rows][energy_img.cols] = {0};
 
     // track forward using dp
     for (int i = 0; i < energy_img.rows; i++)
@@ -141,14 +139,14 @@ int find_horizontal_seam(cv::Mat const &energy_img, std::stack<cv::Point> *seam 
 
 void find_optimal_seams_order(cv::Mat const &energy_img, cv::Size const &new_size, std::stack<char> &seams_order, int step = 1) {
     int c = energy_img.cols - new_size.width, r = energy_img.rows - new_size.height;
-    std::vector<std::vector<int>> T(r / step, std::vector<int>(c / step, 0));
-    std::vector<std::vector<std::vector<int>>> S(r / step, std::vector<std::vector<int>>(c / step, std::vector<int>(2, 0)));
-    std::vector<std::vector<cv::Mat>> energy_imgs(r / step, std::vector<cv::Mat>(c / step));
-    // int T[r / step][c / step] = {0}, S[r / step][c / step][2] = {0};
-    // cv::Mat energy_imgs[r / step][c / step];
+    // std::vector<std::vector<int>> T(r / step, std::vector<int>(c / step, 0));
+    // std::vector<std::vector<std::vector<int>>> S(r / step, std::vector<std::vector<int>>(c / step, std::vector<int>(2, 0)));
+    // std::vector<std::vector<cv::Mat>> energy_imgs(r / step, std::vector<cv::Mat>(c / step, cv::Mat()));
+    int T[r / step][c / step] = {0}, S[r / step][c / step][2] = {0};
+    cv::Mat energy_imgs[r / step][c / step];
     
     // track forward
-    energy_imgs[0][0] = energy_img;
+    energy_imgs[0][0] = energy_img.clone();
     for (int j = 1; j < c / step; j++) {
         std::stack<cv::Point> seam;
         cv::Mat _energy_img = energy_imgs[0][j - 1].clone();
@@ -170,12 +168,12 @@ void find_optimal_seams_order(cv::Mat const &energy_img, cv::Size const &new_siz
     }
     for (int i = 1; i < r / step; i++) {
         for (int j = 1; j < c / step; j++) {
-            std::stack<cv::Point> seam1, seam2;
+            std::stack<cv::Point> seam, seam2;
             cv::Mat _energy_img1 = energy_imgs[i][j - 1].clone(), _energy_img2 = energy_imgs[i - 1][j].clone();
             for (int k = step; k > 0; k--) {
-                S[i][j - 1][0] += find_vertical_seam(_energy_img1, &seam1);
+                S[i][j - 1][0] += find_vertical_seam(_energy_img1, &seam);
                 S[i - 1][j][1] += find_horizontal_seam(_energy_img2, &seam2);
-                remove_seam<uchar>(_energy_img1, seam1, 'v');
+                remove_seam<uchar>(_energy_img1, seam, 'v');
                 remove_seam<uchar>(_energy_img2, seam2);
             }
             if(T[i][j - 1] + S[i][j - 1][0] < T[i - 1][j] + S[i - 1][j][1]) {
@@ -191,7 +189,7 @@ void find_optimal_seams_order(cv::Mat const &energy_img, cv::Size const &new_siz
 
     // track back
     while(!seams_order.empty()) seams_order.pop();
-    while(!(r / step == 1 || c / step == 1)) {
+    while(r / step > 1 && c / step > 1) {
         if (T[r / step - 1][c / step - 1] == T[r / step - 1][c / step - 2] + S[r / step - 1][c / step - 2][0]) {
             for (int k = step; k > 0; k--) {
                 seams_order.push('v');
@@ -247,41 +245,26 @@ int find_k_seams(cv::Mat const &energy_img, std::queue<std::stack<cv::Point>> &s
     return ret;
 }
 
-void average_filtering(cv::Mat &img, std::stack<cv::Point> const &seam, char direction = 'v') {
-    std::stack<cv::Point> seam1(seam), seam2(seam);
-    std::vector<std::vector<int>> count(img.rows, std::vector<int>(img.cols, 0));
-    std::vector<std::vector<std::vector<int>>> sum(img.rows, std::vector<std::vector<int>>(img.cols, std::vector<int>(3, 0)));
-    while (!seam1.empty()) {
-        for (int i = seam1.top().y - 1; i < seam1.top().y + 2; i++) {
-            for (int j = seam1.top().x - 1; j < seam1.top().x + 2; j++) {
-                if(i >= 0 && i < img.rows && j >= 0 && j < img.cols) {
-                    for (int k = 0; k < 3; k++) 
-                        sum[i][j][k] += img.at<cv::Vec3b>(seam1.top())[k];
-                    count[i][j]++;
-                }
-            }
-        }
-        seam1.pop();
-    }
-    while(!seam2.empty()) {
+void average_filtering(cv::Mat &img, std::stack<cv::Point> seam, char direction = 'v') {
+    while(!seam.empty()) {
         if(direction == 'v') {
-            if(seam2.top().x > 0) 
+            if(seam.top().x > 0) 
                 for (int k = 0; k < 3; k++) 
-                    img.at<cv::Vec3b>(seam2.top().y, seam2.top().x - 1)[k] = sum[seam2.top().y][seam2.top().x - 1][k] / count[seam2.top().y][seam2.top().x - 1];
-            if(seam2.top().x < img.cols - 1)
+                    img.at<cv::Vec3b>(seam.top().y, seam.top().x - 1)[k] = (img.at<cv::Vec3b>(seam.top().y, seam.top().x - 1)[k] + img.at<cv::Vec3b>(seam.top())[k]) / 2;
+            if(seam.top().x < img.cols - 1)
                 for (int k = 0; k < 3; k++) 
-                    img.at<cv::Vec3b>(seam2.top().y, seam2.top().x + 1)[k] = sum[seam2.top().y][seam2.top().x + 1][k] / count[seam2.top().y][seam2.top().x + 1];
+                    img.at<cv::Vec3b>(seam.top().y, seam.top().x + 1)[k] = (img.at<cv::Vec3b>(seam.top().y, seam.top().x + 1)[k] + img.at<cv::Vec3b>(seam.top())[k]) / 2;
         }
         else if(direction =='h') {
-            if(seam2.top().y > 0)
+            if(seam.top().y > 0)
                 for (int k = 0; k < 3; k++) 
-                    img.at<cv::Vec3b>(seam2.top().y - 1, seam2.top().x)[k] = sum[seam2.top().y - 1][seam2.top().x][k] / count[seam2.top().y - 1][seam2.top().x];
-            if(seam2.top().y < img.rows - 1)
+                    img.at<cv::Vec3b>(seam.top().y - 1, seam.top().x)[k] = (img.at<cv::Vec3b>(seam.top().y - 1, seam.top().x)[k] + img.at<cv::Vec3b>(seam.top())[k]) / 2;
+            if(seam.top().y < img.rows - 1)
                 for (int k = 0; k < 3; k++) 
-                    img.at<cv::Vec3b>(seam2.top().y + 1, seam2.top().x)[k] = sum[seam2.top().y + 1][seam2.top().x][k] / count[seam2.top().y + 1][seam2.top().x];
+                    img.at<cv::Vec3b>(seam.top().y + 1, seam.top().x)[k] = (img.at<cv::Vec3b>(seam.top().y + 1, seam.top().x)[k] + img.at<cv::Vec3b>(seam.top())[k]) / 2;
         }
         else
             throw std::invalid_argument("unknown direction type.");
-        seam2.pop();
+        seam.pop();
     }
 }
